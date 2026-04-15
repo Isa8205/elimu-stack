@@ -29,4 +29,7 @@ export interface CourseData {
   years: YearData[];
 }
 
-export type Course = 'Computer Science' | 'Information Technology' | 'Software Engineering';
+export interface Course {
+  id: string;
+  name: string;
+}

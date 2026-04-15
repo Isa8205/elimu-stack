@@ -84,7 +84,7 @@ export default function UploadPage() {
     }
 
     // Log form data (mock behavior)
-    console.log({
+    console.table({
       title,
       course: selectedCourse,
       year: parseInt(selectedYear, 10),
@@ -122,7 +122,7 @@ export default function UploadPage() {
 
       <main className="container py-8 md:py-12">
         <div className="max-w-2xl m-4 md:mx-auto">
-          <div className="mb-8 border-b border-border pb-6">
+          <div className="mb-8 border-b border-border">
             <h1 className="text-3xl font-bold mb-2 text-primary">Upload a Paper</h1>
             <p className="text-secondary">
               Share your past papers with the community
