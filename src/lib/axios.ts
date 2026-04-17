@@ -1,5 +1,4 @@
 import axios from "axios";
-import "dotenv/config"
 
 const BASE_URL = process.env.NODE_ENV === "production" ? "https://elimu-stack-backend.onrender.com" : "http://localhost:5000";
 
