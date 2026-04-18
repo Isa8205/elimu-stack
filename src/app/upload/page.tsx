@@ -1,116 +1,98 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Navbar } from '@/components/Navbar';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { coursesData, SEMESTERS } from '@/lib/mock-data';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { FieldGroup, FieldLabel } from '@/components/ui/field';
-import { Textarea } from '@/components/ui/textarea';
-import { Upload } from 'lucide-react';
+import { useState, useEffect, SubmitEventHandler } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Navbar } from "@/components/Navbar";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Textarea } from "@/components/ui/textarea";
+import { Upload } from "lucide-react";
+import { notify } from "@/lib/taost";
+import apiClient from "@/lib/axios";
+import { Course, Semester, Unit } from "@/lib/types";
 
 export default function UploadPage() {
-  const router = useRouter();
   const { course, year, isLoaded } = useUserPreferences();
-  const [title, setTitle] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState(course || '');
-  const [selectedYear, setSelectedYear] = useState(year?.toString() || '');
-  const [selectedSemester, setSelectedSemester] = useState('');
-  const [selectedUnit, setSelectedUnit] = useState('');
-  const [fileName, setFileName] = useState('');
-  const [description, setDescription] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedSemesterId, setSelectedSemesterId] = useState("");
+  const [formData, setFormData] = useState<{ unitId: string; title: string; description: string; file: File | null }>({
+    unitId: "",
+    title: "",
+    description: "",
+    file: null,
+  });
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+
+  const router = useRouter();
 
   // Redirect to home if not loaded
   useEffect(() => {
     if (isLoaded && (!course || !year)) {
-      router.push('/');
+      router.push("/");
     }
   }, [isLoaded, course, year, router]);
-
-  // Get available units based on selected semester
-  const availableUnits = (() => {
-    if (!selectedCourse || !selectedYear || !selectedSemester) return [];
-
-    const courseData = coursesData[selectedCourse];
-    if (!courseData) return [];
-
-    const yearData = courseData.years.find((y) => y.year === parseInt(selectedYear, 10));
-    if (!yearData) return [];
-
-    const semester = yearData.semesters.find(
-      (s) => s.number === parseInt(selectedSemester, 10)
-    );
-    return semester?.units || [];
-  })();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Only allow PDF files
-      if (file.type !== 'application/pdf') {
-        alert('Please select a PDF file');
+      if (file.type !== "application/pdf") {
+        notify.error("Please select a PDF file");
         return;
       }
-      setFileName(file.name);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // TODO: Create a FormData object for submition to the backend.
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!title.trim()) {
-      alert('Please enter a title');
-      return;
-    }
-
-    if (!fileName) {
-      alert('Please select a PDF file');
-      return;
-    }
-
-    if (!selectedUnit) {
-      alert('Please select a unit');
-      return;
-    }
-
-    // Log form data (mock behavior)
-    console.table({
-      title,
-      course: selectedCourse,
-      year: parseInt(selectedYear, 10),
-      semester: parseInt(selectedSemester, 10),
-      unit: selectedUnit,
-      fileName,
-      description,
-      timestamp: new Date().toISOString(),
-    });
-
-    alert('Paper uploaded successfully!');
-
-    // Reset form
-    setTitle('');
-    setFileName('');
-    setDescription('');
-    setSelectedSemester('');
-    setSelectedUnit('');
-
-    // Redirect to papers page
-    router.push('/papers');
+    throw Error("Not Implemented");
   };
 
-  if (!isLoaded) {
-    return null;
-  }
+  const fetchCourses = async () => {
+    const res = await apiClient.get("/get-courses");
+
+    if (res && res.data) {
+      setCourses(res.data.courses);
+    }
+  };
+
+  const fetchSemseters = async (courseId: string, year: number) => {
+    if (!courseId) {
+      console.error("courseId was not provided. Aborting.....");
+      return;
+    }
+
+    const res = await apiClient.get(`/get-semesters?courseId=${courseId}&year=${year}`);
+
+    if (res && res.data) {
+      setSemesters(res.data.semesters);
+    }
+  };
+
+  const fetchUnits = async (semesterId: string) => {
+    if (!semesterId) {
+      console.error("semesterId was not provided. Aborting.....");
+      return;
+    }
+
+    const res = await apiClient.get(`/get-units?semesterId=${semesterId}`);
+
+    if (res && res.data) {
+      setUnits(res.data.units);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,20 +106,20 @@ export default function UploadPage() {
         <div className="max-w-2xl m-4 md:mx-auto">
           <div className="mb-8 border-b border-border">
             <h1 className="text-3xl font-bold mb-2 text-primary">Upload a Paper</h1>
-            <p className="text-secondary">
-              Share your past papers with the community
-            </p>
+            <p className="text-secondary">Share your past papers with the community</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Paper Title - Full Width */}
             <FieldGroup>
-              <FieldLabel htmlFor="title" className="text-primary font-medium">Paper Title *</FieldLabel>
+              <FieldLabel htmlFor="title" className="text-primary font-medium">
+                Paper Title *
+              </FieldLabel>
               <Input
                 id="title"
                 placeholder="e.g., Data Structures Final Exam 2023"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="bg-card border-border text-primary"
               />
             </FieldGroup>
@@ -148,15 +130,25 @@ export default function UploadPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Course */}
                 <FieldGroup>
-                  <FieldLabel htmlFor="course" className="text-primary font-medium">Course *</FieldLabel>
-                  <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                  <FieldLabel htmlFor="course" className="text-primary font-medium">
+                    Course *
+                  </FieldLabel>
+                  <Select
+                    value={selectedCourse?.id}
+                    onValueChange={(value: string) => {
+                      const course = courses.find((c) => c.id === value);
+                      if (course) {
+                        setSelectedCourse(course);
+                      }
+                    }}
+                  >
                     <SelectTrigger id="course" className="bg-card border-border text-primary">
                       <SelectValue placeholder="Select a course" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.keys(coursesData).map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
+                      {courses.map((course) => (
+                        <SelectItem key={course.id} value={course.id}>
+                          {course.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -165,16 +157,26 @@ export default function UploadPage() {
 
                 {/* Year */}
                 <FieldGroup>
-                  <FieldLabel htmlFor="year" className="text-primary font-medium">Year *</FieldLabel>
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <FieldLabel htmlFor="year" className="text-primary font-medium">
+                    Year *
+                  </FieldLabel>
+                  <Select
+                    value={selectedYear ? selectedYear.toString() : ""}
+                    onValueChange={(value: string) => {
+                      setSelectedYear(parseInt(value));
+                      if (selectedCourse) {
+                        fetchSemseters(selectedCourse.id, parseInt(value));
+                      }
+                    }}
+                  >
                     <SelectTrigger id="year" className="bg-card border-border text-primary">
                       <SelectValue placeholder="Select a year" />
                     </SelectTrigger>
                     <SelectContent>
                       {selectedCourse &&
-                        coursesData[selectedCourse].years.map((y) => (
-                          <SelectItem key={y.year} value={y.year.toString()}>
-                            Year {y.year}
+                        Array.from({ length: selectedCourse?.academicYears }).map((_, i) => (
+                          <SelectItem key={i} value={(i + 1).toString()}>
+                            Year {i + 1}
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -189,31 +191,49 @@ export default function UploadPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Semester */}
                 <FieldGroup>
-                  <FieldLabel htmlFor="semester" className="text-primary font-medium">Semester *</FieldLabel>
-                  <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+                  <FieldLabel htmlFor="semester" className="text-primary font-medium">
+                    Semester *
+                  </FieldLabel>
+                  <Select
+                    value={selectedSemesterId}
+                    onValueChange={(value: string) => {
+                      setSelectedSemesterId(value);
+                      if (selectedSemesterId) {
+                        fetchUnits(selectedSemesterId);
+                      }
+                    }}
+                  >
                     <SelectTrigger id="semester" className="bg-card border-border text-primary">
                       <SelectValue placeholder="Select a semester" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SEMESTERS.map((sem) => (
-                        <SelectItem key={sem} value={sem.toString()}>
-                          Semester {sem}
-                        </SelectItem>
-                      ))}
+                      {semesters &&
+                        semesters.map((sem) => (
+                          <SelectItem key={sem.id} value={sem.id}>
+                            {sem.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </FieldGroup>
 
                 {/* Unit */}
                 <FieldGroup>
-                  <FieldLabel htmlFor="unit" className="text-primary font-medium">Unit *</FieldLabel>
-                  <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                  <FieldLabel htmlFor="unit" className="text-primary font-medium">
+                    Unit *
+                  </FieldLabel>
+                  <Select
+                    value={formData.unitId}
+                    onValueChange={(value: string) => {
+                      setFormData((prev) => ({ ...prev, unitId: value }));
+                    }}
+                  >
                     <SelectTrigger id="unit" className="bg-card border-border text-primary">
                       <SelectValue placeholder="Select a unit" />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableUnits.map((unit) => (
-                        <SelectItem key={unit.id} value={unit.name}>
+                      {units.map((unit) => (
+                        <SelectItem key={unit.id} value={unit.id}>
                           {unit.name}
                         </SelectItem>
                       ))}
@@ -225,31 +245,23 @@ export default function UploadPage() {
 
             {/* File Upload - Full Width */}
             <FieldGroup>
-              <FieldLabel htmlFor="file" className="text-primary font-medium">PDF File *</FieldLabel>
+              <FieldLabel htmlFor="file" className="text-primary font-medium">
+                PDF File *
+              </FieldLabel>
               <div className="border-2 border-dashed border-secondary p-6 text-center bg-card">
-                <input
-                  id="file"
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
+                <input id="file" type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
                 <label htmlFor="file" className="cursor-pointer">
                   <div className="space-y-2">
                     <Upload className="w-8 h-8 mx-auto text-secondary" />
-                    {fileName ? (
+                    {formData.file?.name ? (
                       <>
-                        <p className="font-medium text-primary">{fileName}</p>
-                        <p className="text-sm text-secondary">
-                          Click to change file
-                        </p>
+                        <p className="font-medium text-primary">{formData.file.name}</p>
+                        <p className="text-sm text-secondary">Click to change file</p>
                       </>
                     ) : (
                       <>
                         <p className="font-medium text-primary">Click to upload or drag and drop</p>
-                        <p className="text-sm text-secondary">
-                          PDF files only
-                        </p>
+                        <p className="text-sm text-secondary">PDF files only</p>
                       </>
                     )}
                   </div>
@@ -259,12 +271,14 @@ export default function UploadPage() {
 
             {/* Description - Full Width */}
             <FieldGroup>
-              <FieldLabel htmlFor="description" className="text-primary font-medium">Description (Optional)</FieldLabel>
+              <FieldLabel htmlFor="description" className="text-primary font-medium">
+                Description (Optional)
+              </FieldLabel>
               <Textarea
                 id="description"
                 placeholder="Add notes about this paper (e.g., difficulty level, topics covered)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={formData.description}
+                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                 rows={3}
                 className="bg-card border-border text-primary"
               />
@@ -280,7 +294,7 @@ export default function UploadPage() {
                 type="button"
                 size="lg"
                 className="bg-secondary hover:bg-secondary text-secondary-foreground border-0"
-                onClick={() => router.push('/papers')}
+                onClick={() => router.push("/papers")}
               >
                 Cancel
               </Button>

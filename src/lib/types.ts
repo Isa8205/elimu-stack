@@ -16,18 +16,9 @@ export interface Unit {
 
 export interface Semester {
   id: string;
+  name: string;
   number: number;
   units: Unit[];
-}
-
-export interface YearData {
-  year: number;
-  semesters: Semester[];
-}
-
-export interface CourseData {
-  name: string;
-  years: YearData[];
 }
 
 export interface Course {
