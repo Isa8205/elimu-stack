@@ -11,6 +11,7 @@ export interface Paper {
 export interface Unit {
   id: string;
   name: string;
+  code: string;
 }
 
 export interface Semester {
@@ -32,4 +33,6 @@ export interface CourseData {
 export interface Course {
   id: string;
   name: string;
+  academicYears: number;
+  semesters: { id: string; name: string; academicYear: number }[];
 }

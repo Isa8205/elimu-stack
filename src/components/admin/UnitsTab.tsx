@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,27 +15,43 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import type { Unit } from '@/hooks/useAdminData';
+import apiClient from '@/lib/axios';
+import { Course } from '@/lib/types';
 
 export function UnitsTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedSemester, setSelectedSemester] = useState<string>('');
   const [editingUnitId, setEditingUnitId] = useState<string | null>(null);
   const [deleteUnitId, setDeleteUnitId] = useState<string | null>(null);
-  const [unitName, setUnitName] = useState('');
+  const [formData, setFormData] = useState<{ name: string, code: string }>({ name: "", code: ""});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [units, setUnits] = useState<Unit[]>([])
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const res = await apiClient.get("/get-courses");
+
+      if (res && res.data) {
+        setCourses(res.data.courses);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const resetForm = () => {
-    setUnitName('');
+    setFormData({ name: "", code: "" });
     setErrors({});
     setEditingUnitId(null);
   };
 
   const handleOpenDialog = (unit?: Unit) => {
     if (unit) {
-      setUnitName(unit.name);
+      setFormData({ name: "", code: "" });
       setEditingUnitId(unit.id);
     } else {
       resetForm();
@@ -48,9 +64,40 @@ export function UnitsTab() {
     setTimeout(resetForm, 300);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    throw Error("Not implemented");
+  const handleSubmit = async (e: SubmitEvent) => {
+    e.preventDefault();
+
+    if (!formData.name) {
+      setErrors(prev => ({ ...prev, name: "Please enter the unit name"}));
+      return;
+    }
+    if (!formData.code) {
+      setErrors(prev => ({ ...prev, code: "Please enter unit code"}));
+      return;
+    }
+
+    const reqBody = { ...formData, semesterId: selectedSemester };
+
+    const res = await apiClient.post("/add-unit", reqBody);
+
+    if (res && res.status === 201) {
+      console.log("Unit Added succesfully");
+    }
   };
+
+  useEffect(() => {
+    const fetchUnits = async () => {
+      if (selectedSemester !== "") {
+        const res = await apiClient.get(`/get-units?semesterId=${selectedSemester}`);
+
+        if (res.data) {
+          setUnits(res.data.units);
+        }
+      }
+    };
+
+    fetchUnits();
+  }, [selectedSemester]);
 
   return (
     <div className="space-y-6">
@@ -76,7 +123,7 @@ export function UnitsTab() {
           <FieldLabel htmlFor="filter-course" className="text-primary font-medium text-sm">
             Course
           </FieldLabel>
-          <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+          <Select value={selectedCourse?.id} onValueChange={(value) => setSelectedCourse(courses.filter(c => c.id === value)[0])}>
             <SelectTrigger id="filter-course" className="bg-background border-border text-primary">
               <SelectValue placeholder="Select a course" />
             </SelectTrigger>
@@ -99,11 +146,13 @@ export function UnitsTab() {
               <SelectValue placeholder="Select a year" />
             </SelectTrigger>
             <SelectContent>
-              {currentCourse?.years.map(year => (
-                <SelectItem key={year.year} value={year.year.toString()}>
-                  Year {year.year}
+            { selectedCourse?.academicYears && (
+              Array.from({ length: selectedCourse?.academicYears }).map((_, i) => (
+                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                Year {i + 1}
                 </SelectItem>
-              ))}
+              ))
+            )}
             </SelectContent>
           </Select>
         </FieldGroup>
@@ -117,11 +166,13 @@ export function UnitsTab() {
               <SelectValue placeholder="Select a semester" />
             </SelectTrigger>
             <SelectContent>
-              {currentYear?.semesters.map(semester => (
+            { selectedCourse && (
+              selectedCourse.semesters.map(semester => (
                 <SelectItem key={semester.id} value={semester.id}>
-                  Semester {semester.number}
+                {semester.name}
                 </SelectItem>
-              ))}
+              ))
+            )}
             </SelectContent>
           </Select>
         </FieldGroup>
@@ -197,8 +248,22 @@ export function UnitsTab() {
               <Input
                 id="unit-name"
                 placeholder="e.g., Data Structures"
-                value={unitName}
-                onChange={(e) => setUnitName(e.target.value)}
+                value={formData?.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="bg-card border-border text-primary"
+              />
+              {errors.unitName && <p className="text-accent text-sm">{errors.unitName}</p>}
+            </FieldGroup>
+
+            <FieldGroup>
+              <FieldLabel htmlFor="unit-code" className="text-primary font-medium">
+                Unit Name *
+              </FieldLabel>
+              <Input
+                id="unit-code"
+                placeholder="e.g., CS2102"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 className="bg-card border-border text-primary"
               />
               {errors.unitName && <p className="text-accent text-sm">{errors.unitName}</p>}
@@ -235,7 +300,7 @@ export function UnitsTab() {
 
           <div className="flex gap-3 pt-4">
             <Button
-              onClick={handleDelete}
+              onClick={() => { throw Error("Not Implemented" )}}
               className="flex-1 bg-accent hover:bg-accent text-accent-foreground border-0"
             >
               Delete

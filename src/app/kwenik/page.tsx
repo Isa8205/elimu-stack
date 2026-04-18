@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Navbar } from '@/components/Navbar';
 import { CoursesTab } from '@/components/admin/CoursesTab';
 import { UnitsTab } from '@/components/admin/UnitsTab';
+import apiClient from '@/lib/axios';
 
 export default function AdminPage() {
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar>
@@ -45,9 +45,9 @@ export default function AdminPage() {
             <CoursesTab />
           </TabsContent>
 
-          {/*<TabsContent value="units" className="space-y-6">
+          <TabsContent value="units" className="space-y-6">
             <UnitsTab />
-          </TabsContent>*/}
+          </TabsContent>
         </Tabs>
       </main>
     </div>
