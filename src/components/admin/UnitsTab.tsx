@@ -17,6 +17,7 @@ import {
 import type { Unit } from '@/hooks/useAdminData';
 import apiClient from '@/lib/axios';
 import { Course } from '@/lib/types';
+import { notify } from '@/lib/taost';
 
 export function UnitsTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -31,17 +32,6 @@ export function UnitsTab() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [units, setUnits] = useState<Unit[]>([])
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      const res = await apiClient.get("/get-courses");
-
-      if (res && res.data) {
-        setCourses(res.data.courses);
-      }
-    };
-
-    fetchCourses();
-  }, []);
 
   const resetForm = () => {
     setFormData({ name: "", code: "" });
@@ -68,11 +58,11 @@ export function UnitsTab() {
     e.preventDefault();
 
     if (!formData.name) {
-      setErrors(prev => ({ ...prev, name: "Please enter the unit name"}));
+      setErrors(prev => ({ ...prev, unitName: "Please enter the unit name"}));
       return;
     }
     if (!formData.code) {
-      setErrors(prev => ({ ...prev, code: "Please enter unit code"}));
+      setErrors(prev => ({ ...prev, unitCode: "Please enter unit code"}));
       return;
     }
 
@@ -81,9 +71,22 @@ export function UnitsTab() {
     const res = await apiClient.post("/add-unit", reqBody);
 
     if (res && res.status === 201) {
-      console.log("Unit Added succesfully");
+      notify.success("Unit Added succesfully");
+      handleCloseDialog();
     }
   };
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const res = await apiClient.get("/get-courses");
+
+      if (res && res.data) {
+        setCourses(res.data.courses);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   useEffect(() => {
     const fetchUnits = async () => {
@@ -257,7 +260,7 @@ export function UnitsTab() {
 
             <FieldGroup>
               <FieldLabel htmlFor="unit-code" className="text-primary font-medium">
-                Unit Name *
+                Unit Code *
               </FieldLabel>
               <Input
                 id="unit-code"
@@ -266,7 +269,7 @@ export function UnitsTab() {
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 className="bg-card border-border text-primary"
               />
-              {errors.unitName && <p className="text-accent text-sm">{errors.unitName}</p>}
+              {errors.unitCode && <p className="text-accent text-sm">{errors.unitName}</p>}
             </FieldGroup>
 
             <div className="flex gap-3 pt-4 border-t border-border">
