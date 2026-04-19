@@ -40,20 +40,37 @@ export default function UploadPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       // Only allow PDF files
       if (file.type !== "application/pdf") {
         notify.error("Please select a PDF file");
         return;
       }
+
+      setFormData(prev => ({ ...prev, file: file }));
     }
   };
 
-  // TODO: Create a FormData object for submition to the backend.
-  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
 
-    throw Error("Not Implemented");
+    if (!formData.title || !formData.unitId || !formData.file) {
+      notify.error("Missing required fileds. Check again!");
+      return;
+    }
+
+    const body = new FormData();
+    body.append("title", formData.title);
+    body.append("unitId", formData.unitId);
+    body.append("file", formData.file);
+
+    const reqPromise = apiClient.post("/add-paper", body);
+
+    await notify.promise(reqPromise, {
+      loading: "Saving....",
+      success: "Material saved successfully.",
+    })
   };
 
   const fetchCourses = async () => {
@@ -109,7 +126,7 @@ export default function UploadPage() {
             <p className="text-secondary">Share your past papers with the community</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-8" encType="multipart/form-data">
             {/* Paper Title - Full Width */}
             <FieldGroup>
               <FieldLabel htmlFor="title" className="text-primary font-medium">

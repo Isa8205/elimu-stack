@@ -7,6 +7,6 @@ export const notify = {
   dismiss: (id?: string) => toast.dismiss(id),
   promise: <T,>(
     promise: Promise<T>,
-    msgs: { loading: string; success: string; error: string }
+    msgs: { loading: string; success: string; error?: string }
   ) => toast.promise(promise, msgs),
 };
