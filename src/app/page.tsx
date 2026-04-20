@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
-import { Toaster } from 'react-hot-toast';
 import { CourseSelectionModal } from '@/components/CourseSelectionModal';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
@@ -29,7 +28,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Toaster/>
       <Navbar />
 
       <main className="flex justify-center items-center py-12 sm:py-20 md:py-24">

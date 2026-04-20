@@ -1,11 +1,13 @@
 export interface Paper {
   id: string;
   title: string;
-  year: number;
-  semester: number;
-  unit: string;
-  course: string;
-  fileName: string;
+  category: string;
+  fileUrl: string;
+  examYear: number;
+  unit: {
+    name: string;
+    semester: number;
+  };
 }
 
 export interface Unit {

@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { COURSES, YEARS } from '@/lib/mock-data';
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import apiClient from "@/lib/axios";
+import { Course } from "@/lib/types";
 
 interface CourseSelectionModalProps {
   isOpen: boolean;
@@ -13,16 +14,29 @@ interface CourseSelectionModalProps {
 }
 
 export function CourseSelectionModal({ isOpen, onSelect, onClose }: CourseSelectionModalProps) {
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
-  const [selectedYear, setSelectedYear] = useState<string>('');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [courses, setCourses] = useState<Course[]>([]);
 
   const handleSubmit = () => {
     if (selectedCourse && selectedYear) {
-      onSelect(selectedCourse, parseInt(selectedYear, 10));
+      onSelect(selectedCourse.name, parseInt(selectedYear, 10));
     }
   };
 
   const isValid = selectedCourse && selectedYear;
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const res = await apiClient.get("/get-courses");
+
+      if (res && res.data) {
+        setCourses(res.data.courses);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -36,14 +50,23 @@ export function CourseSelectionModal({ isOpen, onSelect, onClose }: CourseSelect
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block text-primary">Course</label>
-            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+            <Select
+              value={selectedCourse?.id}
+              onValueChange={(value: string) => {
+                const course = courses.find((c) => c.id === value);
+
+                if (course) {
+                  setSelectedCourse(course);
+                }
+              }}
+            >
               <SelectTrigger className="border-border bg-card">
                 <SelectValue placeholder="Select a course" />
               </SelectTrigger>
               <SelectContent>
-                {COURSES.map((course) => (
-                  <SelectItem key={course} value={course}>
-                    {course}
+                {courses.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -56,11 +79,12 @@ export function CourseSelectionModal({ isOpen, onSelect, onClose }: CourseSelect
                 <SelectValue placeholder="Select a year" />
               </SelectTrigger>
               <SelectContent>
-                {YEARS.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    Year {year}
-                  </SelectItem>
-                ))}
+                {selectedCourse &&
+                  Array.from({ length: selectedCourse.academicYears }).map((_, i) => (
+                    <SelectItem key={i} value={(i + 1).toString()}>
+                      Year {i + 1}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

@@ -8,7 +8,6 @@ import { Navbar } from '@/components/Navbar';
 import { PaperCard } from '@/components/PaperCard';
 import { PapersSidebar } from '@/components/PapersSidebar';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { mockPapers, coursesData } from '@/lib/mock-data';
 import {
   Sheet,
   SheetContent,
@@ -16,53 +15,48 @@ import {
 } from '@/components/ui/sheet';
 import { Menu, Plus } from 'lucide-react';
 import { Empty } from '@/components/ui/empty';
+import apiClient from '@/lib/axios';
+import { Paper } from '@/lib/types';
 
 export default function PapersPage() {
   const router = useRouter();
-  const { course, year, selectedUnit, isLoaded, setSelectedUnit } = useUserPreferences();
+  const [papers, setPapers] = useState<Paper[]>([])
+  const { course, year, isLoaded } = useUserPreferences();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Redirect to home if no course/year selected
+  const currentUnitName = '';
+
   useEffect(() => {
     if (isLoaded && (!course || !year)) {
       router.push('/');
     }
   }, [isLoaded, course, year, router]);
 
-  // Get the current unit name
-  const currentUnitName = useMemo(() => {
-    if (!course || !year || !selectedUnit) return null;
-    const courseData = coursesData[course];
-    if (!courseData) return null;
-    const yearData = courseData.years.find((y) => y.year === year);
-    if (!yearData) return null;
+  useEffect(() => {
+    const fetchPapers = async () =>  {
+      const res = await apiClient.get(`/get-papers?course=${course}&year=${year || 1}`);
 
-    for (const semester of yearData.semesters) {
-      const unit = semester.units.find((u) => u.id === selectedUnit);
-      if (unit) return unit.name;
-    }
-    return null;
-  }, [course, year, selectedUnit]);
+      if (res && res.data) {
+        setPapers(res.data.papers);
+      }
+    };
+
+    fetchPapers();
+  }, [course, year]);
 
   // Filter papers based on selected unit and search query
   const filteredPapers = useMemo(() => {
-    let filtered = mockPapers;
-
-    if (currentUnitName) {
-      filtered = filtered.filter(
-        (paper) => paper.unit === currentUnitName && paper.course === course
-      );
-    }
+    let filtered = papers;
 
     if (searchQuery) {
       filtered = filtered.filter((paper) =>
         paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        paper.unit.toLowerCase().includes(searchQuery.toLowerCase())
+        paper.unit.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     return filtered;
-  }, [currentUnitName, course, searchQuery]);
+  }, [papers, searchQuery]);
 
   if (!isLoaded || !course || !year) {
     return null;
@@ -85,12 +79,12 @@ export default function PapersPage() {
       <div className="flex flex-1">
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-64 border-r border-border overflow-y-auto h-[calc(100vh-64px)]">
-          <PapersSidebar
+        {/*<PapersSidebar
             course={course}
             year={year}
             selectedUnit={selectedUnit}
-            onSelectUnit={setSelectedUnit}
-          />
+            onSelectUnit={() => { throw Error("Not Implemented"); }}
+          />*/}
         </aside>
 
         {/* Mobile Sidebar */}
@@ -102,12 +96,12 @@ export default function PapersPage() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <div className="mt-8">
-              <PapersSidebar
+            {/*<PapersSidebar
                 course={course}
                 year={year}
                 selectedUnit={selectedUnit}
-                onSelectUnit={setSelectedUnit}
-              />
+                onSelectUnit={() => { throw Error("Not Implemented"); }}
+              />*/}
             </div>
           </SheetContent>
         </Sheet>
@@ -147,11 +141,11 @@ export default function PapersPage() {
             ) : (
               <Empty
                 title={currentUnitName ? 'No papers found' : 'Select a unit to view papers'}
-                description={
-                  currentUnitName
-                    ? 'Try adjusting your search or selecting a different unit'
-                    : 'Browse the sidebar to choose a unit'
-                }
+                // description={
+                //   currentUnitName
+                //     ? 'Try adjusting your search or selecting a different unit'
+                //     : 'Browse the sidebar to choose a unit'
+                // }
               />
             )}
           </div>

@@ -2,8 +2,6 @@
 
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { coursesData } from '@/lib/mock-data';
-import type { Unit } from '@/lib/types';
 
 interface PapersSidebarProps {
   course: string;
@@ -20,7 +18,7 @@ export function PapersSidebar({
 }: PapersSidebarProps) {
   const [expandedSemester, setExpandedSemester] = useState<string | null>(null);
 
-  const courseData = coursesData[course];
+  const courseData: any = [];
   if (!courseData) return null;
 
   const yearData = courseData.years.find((y) => y.year === year);
