@@ -28,10 +28,14 @@ export function CourseSelectionModal({ isOpen, onSelect, onClose }: CourseSelect
 
   useEffect(() => {
     const fetchCourses = async () => {
-      const res = await apiClient.get("/get-courses");
-
-      if (res && res.data) {
-        setCourses(res.data.courses);
+      try {
+        const res = await apiClient.get("/get-courses");
+        if (res?.data?.courses) {
+          setCourses(res.data.courses);
+        }
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+        // Consider setting an error state to display to users
       }
     };
 

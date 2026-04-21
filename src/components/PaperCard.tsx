@@ -1,16 +1,15 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Download, ExternalLink } from 'lucide-react';
-import type { Paper } from '@/lib/types';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Download, ExternalLink } from "lucide-react";
+import type { Paper } from "@/lib/types";
 
 interface PaperCardProps {
   paper: Paper;
 }
 
 export function PaperCard({ paper }: PaperCardProps) {
-  const handleDownload = () => {
-    // Mock download - in a real app, this would download the file
-    alert(`Not Implemented`);
+  const handleDownload = async (fileUrl: string) => {
+    alert("Not Implemented")
   };
 
   return (
@@ -33,9 +32,9 @@ export function PaperCard({ paper }: PaperCardProps) {
             </div>
           </div>
 
-          <div className='flex justify-between align-center gap-2'>
+          <div className="flex justify-between align-center gap-2">
             <Button
-              onClick={handleDownload}
+              onClick={() => handleDownload(paper.fileUrl)}
               size="sm"
               className="flex-1 mt-2 bg-accent hover:bg-accent text-accent-foreground border-0"
             >
@@ -44,7 +43,7 @@ export function PaperCard({ paper }: PaperCardProps) {
             </Button>
 
             <Button
-              onClick={handleDownload}
+              onClick={() => alert("Not Implemented")}
               size="sm"
               className="flex-1 mt-2 bg-primary hover:bg-accent text-accent-foreground border-0"
             >

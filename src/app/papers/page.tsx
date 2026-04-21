@@ -1,39 +1,35 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Navbar } from '@/components/Navbar';
-import { PaperCard } from '@/components/PaperCard';
-import { PapersSidebar } from '@/components/PapersSidebar';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Menu, Plus } from 'lucide-react';
-import { Empty } from '@/components/ui/empty';
-import apiClient from '@/lib/axios';
-import { Paper } from '@/lib/types';
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Navbar } from "@/components/Navbar";
+import { PaperCard } from "@/components/PaperCard";
+import { PapersSidebar } from "@/components/PapersSidebar";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, Plus } from "lucide-react";
+import { Empty } from "@/components/ui/empty";
+import apiClient from "@/lib/axios";
+import { Paper } from "@/lib/types";
 
 export default function PapersPage() {
   const router = useRouter();
-  const [papers, setPapers] = useState<Paper[]>([])
+  const [papers, setPapers] = useState<Paper[]>([]);
   const { course, year, isLoaded } = useUserPreferences();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const currentUnitName = '';
+  const currentUnitName = "";
 
   useEffect(() => {
     if (isLoaded && (!course || !year)) {
-      router.push('/');
+      router.push("/");
     }
   }, [isLoaded, course, year, router]);
 
   useEffect(() => {
-    const fetchPapers = async () =>  {
+    const fetchPapers = async () => {
       const res = await apiClient.get(`/get-papers?course=${course}&year=${year || 1}`);
 
       if (res && res.data) {
@@ -49,14 +45,19 @@ export default function PapersPage() {
     let filtered = papers;
 
     if (searchQuery) {
-      filtered = filtered.filter((paper) =>
-        paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        paper.unit.name.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (paper) =>
+          paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          paper.unit.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
     return filtered;
   }, [papers, searchQuery]);
+
+  const onUnitSelected = (unitId: string) => {
+    alert("Not Implemented");
+  }
 
   if (!isLoaded || !course || !year) {
     return null;
@@ -79,12 +80,11 @@ export default function PapersPage() {
       <div className="flex flex-1">
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-64 border-r border-border overflow-y-auto h-[calc(100vh-64px)]">
-        {/*<PapersSidebar
+          <PapersSidebar
             course={course}
             year={year}
-            selectedUnit={selectedUnit}
-            onSelectUnit={() => { throw Error("Not Implemented"); }}
-          />*/}
+            onUnitSelected={onUnitSelected}
+          />
         </aside>
 
         {/* Mobile Sidebar */}
@@ -96,12 +96,11 @@ export default function PapersPage() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <div className="mt-8">
-            {/*<PapersSidebar
+              <PapersSidebar
                 course={course}
                 year={year}
-                selectedUnit={selectedUnit}
-                onSelectUnit={() => { throw Error("Not Implemented"); }}
-              />*/}
+                onUnitSelected={onUnitSelected}
+              />
             </div>
           </SheetContent>
         </Sheet>
@@ -111,9 +110,7 @@ export default function PapersPage() {
           <div className="p-4 sm:p-6 md:p-8 max-w-6xl">
             {/* Header */}
             <div className="mb-8 border-b border-border pb-6">
-              <h1 className="text-3xl font-bold mb-2 text-primary">
-                {currentUnitName || 'Select a Unit'}
-              </h1>
+              <h1 className="text-3xl font-bold mb-2 text-primary">{currentUnitName || "Select a Unit"}</h1>
               {currentUnitName && (
                 <p className="text-secondary">
                   {course} • Year {year}
@@ -140,12 +137,12 @@ export default function PapersPage() {
               </div>
             ) : (
               <Empty
-                title={currentUnitName ? 'No papers found' : 'Select a unit to view papers'}
-                // description={
-                //   currentUnitName
-                //     ? 'Try adjusting your search or selecting a different unit'
-                //     : 'Browse the sidebar to choose a unit'
-                // }
+                title={currentUnitName ? "No papers found" : "Select a unit to view papers"}
+              // description={
+              //   currentUnitName
+              //     ? 'Try adjusting your search or selecting a different unit'
+              //     : 'Browse the sidebar to choose a unit'
+              // }
               />
             )}
           </div>

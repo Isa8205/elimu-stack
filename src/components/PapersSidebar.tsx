@@ -1,28 +1,33 @@
-'use client';
+"use client";
 
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import apiClient from "@/lib/axios";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface PapersSidebarProps {
   course: string;
   year: number;
-  selectedUnit: string | null;
-  onSelectUnit: (unitId: string, unitName: string) => void;
+  onUnitSelected: (unitId: string) => void;
 }
 
-export function PapersSidebar({
-  course,
-  year,
-  selectedUnit,
-  onSelectUnit,
-}: PapersSidebarProps) {
+export function PapersSidebar({ course, year, onUnitSelected }: PapersSidebarProps) {
   const [expandedSemester, setExpandedSemester] = useState<string | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState("");
+  const [semesterData, setSemesterData] = useState<
+    { id: string; name: string; units: { id: string; name: string }[] }[]
+  >([]);
 
-  const courseData: any = [];
-  if (!courseData) return null;
+  useEffect(() => {
+    const fetchNavSemesters = async () => {
+      const res = await apiClient.get(`/get-nav-sems?course=${course}&year=${year}`);
 
-  const yearData = courseData.years.find((y) => y.year === year);
-  if (!yearData) return null;
+      if (res && res.data.result) {
+        setSemesterData(res.data.result);
+      }
+    };
+
+    fetchNavSemesters();
+  }, []);
 
   const toggleSemester = (semesterId: string) => {
     setExpandedSemester(expandedSemester === semesterId ? null : semesterId);
@@ -31,20 +36,18 @@ export function PapersSidebar({
   return (
     <div className="space-y-2 bg-card border border-border">
       <div className="px-3 py-3 border-b border-border">
-        <h3 className="font-semibold text-sm text-primary">
-          {course}
-        </h3>
+        <h3 className="font-semibold text-sm text-primary">{course}</h3>
         <p className="text-xs text-secondary">Year {year}</p>
       </div>
 
       <div className="space-y-0">
-        {yearData.semesters.map((semester) => (
+        {semesterData.map((semester) => (
           <div key={semester.id}>
             <button
               onClick={() => toggleSemester(semester.id)}
               className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium hover:bg-muted text-primary border-b border-border"
             >
-              <span>Semester {semester.number}</span>
+              <span>{semester.name}</span>
               {expandedSemester === semester.id ? (
                 <ChevronDown className="w-4 h-4" />
               ) : (
@@ -57,12 +60,14 @@ export function PapersSidebar({
                 {semester.units.map((unit) => (
                   <button
                     key={unit.id}
-                    onClick={() => onSelectUnit(unit.id, unit.name)}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                      selectedUnit === unit.id
-                        ? 'bg-accent text-accent-foreground font-medium'
-                        : 'hover:bg-border text-primary'
-                    }`}
+                    onClick={() => {
+                      onUnitSelected(unit.id);
+                      setSelectedUnit(unit.id);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${selectedUnit === unit.id
+                        ? "bg-accent text-accent-foreground font-medium"
+                        : "hover:bg-border text-primary"
+                      }`}
                   >
                     {unit.name}
                   </button>
