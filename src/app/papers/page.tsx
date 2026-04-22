@@ -19,8 +19,7 @@ export default function PapersPage() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const { course, year, isLoaded } = useUserPreferences();
   const [searchQuery, setSearchQuery] = useState("");
-
-  const currentUnitName = "";
+  const [selectedUnit, setSelectedUnit] = useState("");
 
   useEffect(() => {
     if (isLoaded && (!course || !year)) {
@@ -30,15 +29,15 @@ export default function PapersPage() {
 
   useEffect(() => {
     const fetchPapers = async () => {
-      const res = await apiClient.get(`/get-papers?course=${course}&year=${year || 1}`);
+      const res = await apiClient.get(`/get-papers?course=${course}&year=${year || 1}&unit=${selectedUnit}&t=${Date.now()}`);
 
-      if (res && res.data) {
+      if (res && res.data.papers) {
         setPapers(res.data.papers);
       }
     };
 
     fetchPapers();
-  }, [course, year]);
+  }, [course, year, selectedUnit]);
 
   // Filter papers based on selected unit and search query
   const filteredPapers = useMemo(() => {
@@ -55,9 +54,11 @@ export default function PapersPage() {
     return filtered;
   }, [papers, searchQuery]);
 
-  const onUnitSelected = (unitId: string) => {
-    alert("Not Implemented");
-  }
+  const onUnitSelected = (unitName: string) => {
+    if (unitName) {
+      setSelectedUnit(unitName);
+    }
+  };
 
   if (!isLoaded || !course || !year) {
     return null;
@@ -80,11 +81,7 @@ export default function PapersPage() {
       <div className="flex flex-1">
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-64 border-r border-border overflow-y-auto h-[calc(100vh-64px)]">
-          <PapersSidebar
-            course={course}
-            year={year}
-            onUnitSelected={onUnitSelected}
-          />
+          <PapersSidebar course={course} year={year} onUnitSelected={onUnitSelected} />
         </aside>
 
         {/* Mobile Sidebar */}
@@ -96,11 +93,7 @@ export default function PapersPage() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <div className="mt-8">
-              <PapersSidebar
-                course={course}
-                year={year}
-                onUnitSelected={onUnitSelected}
-              />
+              <PapersSidebar course={course} year={year} onUnitSelected={onUnitSelected} />
             </div>
           </SheetContent>
         </Sheet>
@@ -110,8 +103,8 @@ export default function PapersPage() {
           <div className="p-4 sm:p-6 md:p-8 max-w-6xl">
             {/* Header */}
             <div className="mb-8 border-b border-border pb-6">
-              <h1 className="text-3xl font-bold mb-2 text-primary">{currentUnitName || "Select a Unit"}</h1>
-              {currentUnitName && (
+              <h1 className="text-3xl font-bold mb-2 text-primary">{selectedUnit || "Select a Unit"}</h1>
+              {selectedUnit && (
                 <p className="text-secondary">
                   {course} • Year {year}
                 </p>
@@ -137,12 +130,7 @@ export default function PapersPage() {
               </div>
             ) : (
               <Empty
-                title={currentUnitName ? "No papers found" : "Select a unit to view papers"}
-              // description={
-              //   currentUnitName
-              //     ? 'Try adjusting your search or selecting a different unit'
-              //     : 'Browse the sidebar to choose a unit'
-              // }
+                title={selectedUnit ? "No papers found" : "Select a unit to view papers"}
               />
             )}
           </div>

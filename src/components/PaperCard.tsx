@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, ExternalLink } from "lucide-react";
 import type { Paper } from "@/lib/types";
+import apiClient from "@/lib/axios";
 
 interface PaperCardProps {
   paper: Paper;
@@ -9,7 +10,35 @@ interface PaperCardProps {
 
 export function PaperCard({ paper }: PaperCardProps) {
   const handleDownload = async (fileUrl: string) => {
-    alert("Not Implemented")
+    const res = await apiClient.get(fileUrl, {
+      responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(res.data);
+
+    const safeName = paper.title.replace(/[^a-z0-9]/gi, "_");
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safeName}.pdf`
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleFileView = async (fileUrl: string) => {
+    const res = await apiClient.get(fileUrl, {
+      responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(res.data);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.click();
+
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -43,7 +72,7 @@ export function PaperCard({ paper }: PaperCardProps) {
             </Button>
 
             <Button
-              onClick={() => alert("Not Implemented")}
+              onClick={() => handleFileView(paper.fileUrl)}
               size="sm"
               className="flex-1 mt-2 bg-primary hover:bg-accent text-accent-foreground border-0"
             >

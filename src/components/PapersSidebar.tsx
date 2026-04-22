@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 interface PapersSidebarProps {
   course: string;
   year: number;
-  onUnitSelected: (unitId: string) => void;
+  onUnitSelected: (unitName: string) => void;
 }
 
 export function PapersSidebar({ course, year, onUnitSelected }: PapersSidebarProps) {
@@ -61,7 +61,7 @@ export function PapersSidebar({ course, year, onUnitSelected }: PapersSidebarPro
                   <button
                     key={unit.id}
                     onClick={() => {
-                      onUnitSelected(unit.id);
+                      onUnitSelected(unit.name);
                       setSelectedUnit(unit.id);
                     }}
                     className={`w-full text-left px-3 py-2 text-sm transition-colors ${selectedUnit === unit.id
