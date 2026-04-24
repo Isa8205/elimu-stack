@@ -68,7 +68,11 @@ export function UnitsTab() {
 
     const reqBody = { ...formData, semesterId: selectedSemester };
 
-    const res = await apiClient.post("/add-unit", reqBody);
+    const res = await apiClient.post("/add-unit", reqBody, {
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
 
     if (res && res.status === 201) {
       notify.success("Unit Added succesfully");

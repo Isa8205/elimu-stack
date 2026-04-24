@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Trash2, Edit2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +69,11 @@ export function CoursesTab() {
     e.preventDefault();
 
     if (formData.name && formData?.academicYears) {
-      const res = await apiClient.post("/add-course", JSON.stringify(formData));
+      const res = await apiClient.post("/add-course", JSON.stringify(formData), {
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
       console.log(res.data);
     }
   }

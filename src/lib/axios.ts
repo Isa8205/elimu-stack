@@ -1,6 +1,7 @@
 import axios from "axios";
 import { notify } from "./taost";
 
+// TODO: Make the BASE_URL come from the environment variables.
 const BASE_URL = process.env.NODE_ENV === "production" ? "https://elimu-stack-backend.onrender.com" : "http://localhost:5000";
 
 const apiClient = axios.create({
