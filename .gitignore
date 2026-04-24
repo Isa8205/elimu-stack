@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Admin and upload endpoints
+src/app/kwenik
+src/app/upload
+
+# Image to PDF page
+img2pdf.html
