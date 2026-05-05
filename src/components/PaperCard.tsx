@@ -61,7 +61,7 @@ export function PaperCard({ paper }: PaperCardProps) {
             </div>
           </div>
 
-          <div className="flex justify-between align-center gap-2">
+          <div className="flex justify-between items-center gap-2">
             <Button
               onClick={() => handleDownload(paper.fileUrl)}
               size="sm"

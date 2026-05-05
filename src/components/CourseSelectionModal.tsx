@@ -61,6 +61,7 @@ export function CourseSelectionModal({ isOpen, onSelect, onClose }: CourseSelect
 
                 if (course) {
                   setSelectedCourse(course);
+                  setSelectedYear("");
                 }
               }}
             >

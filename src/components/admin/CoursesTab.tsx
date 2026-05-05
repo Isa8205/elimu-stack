@@ -69,11 +69,7 @@ export function CoursesTab() {
     e.preventDefault();
 
     if (formData.name && formData?.academicYears) {
-      const res = await apiClient.post("/add-course", JSON.stringify(formData), {
-        headers: {
-          "Content-Type": "application/json",
-        }
-      });
+      const res = await apiClient.post("/add-course", formData);
       console.log(res.data);
     }
   }

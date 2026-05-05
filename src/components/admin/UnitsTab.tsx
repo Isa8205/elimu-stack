@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { SubmitEventHandler, useEffect, useState } from 'react';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,10 +14,9 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import type { Unit } from '@/hooks/useAdminData';
 import apiClient from '@/lib/axios';
-import { Course } from '@/lib/types';
-import { notify } from '@/lib/taost';
+import { Course, Unit } from '@/lib/types';
+import { notify } from '@/lib/toast';
 
 export function UnitsTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -54,7 +53,7 @@ export function UnitsTab() {
     setTimeout(resetForm, 300);
   };
 
-  const handleSubmit = async (e: SubmitEvent) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
 
     if (!formData.name) {

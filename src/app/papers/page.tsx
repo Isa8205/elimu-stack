@@ -29,7 +29,7 @@ export default function PapersPage() {
 
   useEffect(() => {
     const fetchPapers = async () => {
-      const res = await apiClient.get(`/get-papers?course=${course}&year=${year || 1}&unit=${selectedUnit}&t=${Date.now()}`);
+      const res = await apiClient.get(`/get-papers?course=${course}&year=${year || 1}&unit=${selectedUnit}`);
 
       if (res && res.data.papers) {
         setPapers(res.data.papers);
@@ -47,7 +47,7 @@ export default function PapersPage() {
       filtered = filtered.filter(
         (paper) =>
           paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          paper.unit.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          paper.unit?.name?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -70,12 +70,14 @@ export default function PapersPage() {
         <Button variant="ghost" asChild className="text-primary-foreground hover:bg-secondary">
           <a href="/">Home</a>
         </Button>
+        {/* 
         <Button asChild className="bg-accent hover:bg-accent text-accent-foreground border-0">
           <a href="/upload">
             <Plus className="w-4 h-4 mr-2" />
             Upload Paper
           </a>
         </Button>
+        */}
       </Navbar>
 
       <div className="flex flex-1">
@@ -129,9 +131,7 @@ export default function PapersPage() {
                 ))}
               </div>
             ) : (
-              <Empty
-                title={selectedUnit ? "No papers found" : "Select a unit to view papers"}
-              />
+              <Empty title={selectedUnit ? "No papers found" : "Select a unit to view papers"} />
             )}
           </div>
         </main>
